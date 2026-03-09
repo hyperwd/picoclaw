@@ -593,6 +593,24 @@ Agent 读取 HEARTBEAT.md
 
 > 运行 `picoclaw auth login --provider anthropic` 来设置 OAuth 凭证。
 
+**Anthropic Messages API（原生格式）**
+
+用于直接访问 Anthropic API 或仅支持 Anthropic 原生消息格式的自定义端点：
+
+```json
+{
+  "model_name": "claude-opus-4-6",
+  "model": "anthropic-messages/claude-opus-4-6",
+  "api_key": "sk-ant-your-key",
+  "api_base": "https://api.anthropic.com"
+}
+```
+
+> 使用 `anthropic-messages` 协议的场景：
+> - 直接连接 Anthropic API（修复 `/v1/messages` 端点的 404 错误）
+> - 使用仅支持 Anthropic 原生格式的自定义端点
+> - 避免 OpenAI 兼容包装层
+
 **Ollama (本地)**
 
 ```json
