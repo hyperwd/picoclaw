@@ -202,9 +202,9 @@ func TestParseResponseBody(t *testing.T) {
 				}
 			}`),
 			want: &LLMResponse{
-				Content:          "Hello, how can I help?",
-				ToolCalls:        []ToolCall{},
-				FinishReason:     "stop",
+				Content:      "Hello, how can I help?",
+				ToolCalls:    []ToolCall{},
+				FinishReason: "stop",
 				Usage: &UsageInfo{
 					PromptTokens:     10,
 					CompletionTokens: 5,
@@ -252,7 +252,7 @@ func TestParseResponseBody(t *testing.T) {
 						},
 					},
 				},
-				FinishReason:     "tool_calls",
+				FinishReason: "tool_calls",
 				Usage: &UsageInfo{
 					PromptTokens:     20,
 					CompletionTokens: 15,
@@ -286,9 +286,9 @@ func TestParseResponseBody(t *testing.T) {
 				}
 			}`),
 			want: &LLMResponse{
-				Content:          "Partial response",
-				ToolCalls:        []ToolCall{},
-				FinishReason:     "length",
+				Content:      "Partial response",
+				ToolCalls:    []ToolCall{},
+				FinishReason: "length",
 				Usage: &UsageInfo{
 					PromptTokens:     100,
 					CompletionTokens: 4096,

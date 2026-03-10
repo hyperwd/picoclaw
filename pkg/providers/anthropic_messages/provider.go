@@ -30,8 +30,8 @@ type (
 )
 
 const (
-	defaultAPIVersion   = "2023-06-01"
-	defaultBaseURL      = "https://api.anthropic.com/v1"
+	defaultAPIVersion     = "2023-06-01"
+	defaultBaseURL        = "https://api.anthropic.com/v1"
 	defaultRequestTimeout = 120 * time.Second
 )
 
@@ -145,9 +145,9 @@ func buildRequestBody(
 	options map[string]any,
 ) (map[string]any, error) {
 	result := map[string]any{
-		"model":     model,
+		"model":      model,
 		"max_tokens": int64(4096),
-		"messages":  []any{},
+		"messages":   []any{},
 	}
 
 	// Set max_tokens from options
@@ -179,9 +179,9 @@ func buildRequestBody(
 				// Tool result message
 				content := []map[string]any{
 					{
-						"type":   "tool_result",
+						"type":        "tool_result",
 						"tool_use_id": msg.ToolCallID,
-						"content": msg.Content,
+						"content":     msg.Content,
 					},
 				}
 				apiMessages = append(apiMessages, map[string]any{
@@ -227,9 +227,9 @@ func buildRequestBody(
 			// Tool result (alternative format)
 			content := []map[string]any{
 				{
-					"type":   "tool_result",
+					"type":        "tool_result",
 					"tool_use_id": msg.ToolCallID,
-					"content": msg.Content,
+					"content":     msg.Content,
 				},
 			}
 			apiMessages = append(apiMessages, map[string]any{
@@ -259,8 +259,8 @@ func buildTools(tools []ToolDefinition) []any {
 	result := make([]any, len(tools))
 	for i, tool := range tools {
 		toolDef := map[string]any{
-			"name":        tool.Function.Name,
-			"description": tool.Function.Description,
+			"name":         tool.Function.Name,
+			"description":  tool.Function.Description,
 			"input_schema": tool.Function.Parameters,
 		}
 		result[i] = toolDef
@@ -369,13 +369,13 @@ func asFloat(v any) (float64, bool) {
 // Anthropic API response structures
 
 type anthropicMessageResponse struct {
-	ID          string        `json:"id"`
-	Type        string        `json:"type"`
-	Role        string        `json:"role"`
-	Content     []contentBlock `json:"content"`
-	StopReason  string        `json:"stop_reason"`
-	Model       string        `json:"model"`
-	Usage       usageInfo     `json:"usage"`
+	ID         string         `json:"id"`
+	Type       string         `json:"type"`
+	Role       string         `json:"role"`
+	Content    []contentBlock `json:"content"`
+	StopReason string         `json:"stop_reason"`
+	Model      string         `json:"model"`
+	Usage      usageInfo      `json:"usage"`
 }
 
 type contentBlock struct {
