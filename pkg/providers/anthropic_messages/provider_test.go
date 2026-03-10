@@ -328,7 +328,8 @@ func TestParseResponseBody(t *testing.T) {
 					t.Errorf("Usage.PromptTokens = %d, want %d", got.Usage.PromptTokens, tt.want.Usage.PromptTokens)
 				}
 				if got.Usage.CompletionTokens != tt.want.Usage.CompletionTokens {
-					t.Errorf("Usage.CompletionTokens = %d, want %d", got.Usage.CompletionTokens, tt.want.Usage.CompletionTokens)
+					t.Errorf("Usage.CompletionTokens = %d, want %d",
+						got.Usage.CompletionTokens, tt.want.Usage.CompletionTokens)
 				}
 				if got.Usage.TotalTokens != tt.want.Usage.TotalTokens {
 					t.Errorf("Usage.TotalTokens = %d, want %d", got.Usage.TotalTokens, tt.want.Usage.TotalTokens)
@@ -339,10 +340,12 @@ func TestParseResponseBody(t *testing.T) {
 			} else {
 				for i := range got.ToolCalls {
 					if got.ToolCalls[i].ID != tt.want.ToolCalls[i].ID {
-						t.Errorf("ToolCalls[%d].ID = %q, want %q", i, got.ToolCalls[i].ID, tt.want.ToolCalls[i].ID)
+						t.Errorf("ToolCalls[%d].ID = %q, want %q",
+							i, got.ToolCalls[i].ID, tt.want.ToolCalls[i].ID)
 					}
 					if got.ToolCalls[i].Name != tt.want.ToolCalls[i].Name {
-						t.Errorf("ToolCalls[%d].Name = %q, want %q", i, got.ToolCalls[i].Name, tt.want.ToolCalls[i].Name)
+						t.Errorf("ToolCalls[%d].Name = %q, want %q",
+							i, got.ToolCalls[i].Name, tt.want.ToolCalls[i].Name)
 					}
 				}
 			}
