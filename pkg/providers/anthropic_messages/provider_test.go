@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -428,6 +429,162 @@ func TestGetDefaultModel(t *testing.T) {
 	expected := "claude-sonnet-4.6"
 	if got != expected {
 		t.Errorf("GetDefaultModel() = %q, want %q", got, expected)
+	}
+}
+
+// TestBuildRequestBodyEdgeCases tests edge cases for buildRequestBody.
+func TestBuildRequestBodyEdgeCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		messages []Message
+		tools    []ToolDefinition
+		model    string
+		options  map[string]any
+		wantErr  bool
+	}{
+		{
+			name:     "empty message list",
+			messages: []Message{},
+			model:    "test-model",
+			options: map[string]any{
+				"max_tokens": 8192,
+			},
+			wantErr: false,
+		},
+		{
+			name: "very long system message",
+			messages: []Message{
+				{Role: "system", Content: strings.Repeat("This is a very long system prompt. ", 1000)},
+				{Role: "user", Content: "Hello"},
+			},
+			model: "test-model",
+			options: map[string]any{
+				"max_tokens": 8192,
+			},
+			wantErr: false,
+		},
+		{
+			name: "multiple consecutive system messages",
+			messages: []Message{
+				{Role: "system", Content: "First system message"},
+				{Role: "system", Content: "Second system message"},
+				{Role: "system", Content: "Third system message"},
+				{Role: "user", Content: "Hello"},
+			},
+			model: "test-model",
+			options: map[string]any{
+				"max_tokens": 8192,
+			},
+			wantErr: false,
+		},
+		{
+			name: "tool result without tool call",
+			messages: []Message{
+				{Role: "user", Content: "Use a tool"},
+				{Role: "assistant", Content: "", ToolCalls: []ToolCall{
+					{ID: "tool-1", Name: "test_tool", Arguments: map[string]any{"arg": "value"}},
+				}},
+				{Role: "user", ToolCallID: "tool-1", Content: "Tool result"},
+			},
+			model: "test-model",
+			options: map[string]any{
+				"max_tokens": 8192,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := buildRequestBody(tt.messages, tt.tools, tt.model, tt.options)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("buildRequestBody() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil {
+				return
+			}
+
+			// Verify basic structure
+			if got == nil {
+				t.Error("buildRequestBody() returned nil")
+				return
+			}
+			if got["model"] != tt.model {
+				t.Errorf("model = %v, want %v", got["model"], tt.model)
+			}
+		})
+	}
+}
+
+// TestParseResponseBodyEdgeCases tests edge cases for parseResponseBody.
+func TestParseResponseBodyEdgeCases(t *testing.T) {
+	tests := []struct {
+		name    string
+		body    []byte
+		wantErr bool
+		check   func(*testing.T, *LLMResponse)
+	}{
+		{
+			name: "empty content blocks",
+			body: []byte(`{
+				"id": "msg-empty",
+				"type": "message",
+				"role": "assistant",
+				"content": [],
+				"stop_reason": "end_turn",
+				"model": "test-model",
+				"usage": {"input_tokens": 5, "output_tokens": 0}
+			}`),
+			wantErr: false,
+			check: func(t *testing.T, resp *LLMResponse) {
+				if resp.Content != "" {
+					t.Errorf("Content = %q, want empty string", resp.Content)
+				}
+				if len(resp.ToolCalls) != 0 {
+					t.Errorf("ToolCalls length = %d, want 0", len(resp.ToolCalls))
+				}
+			},
+		},
+		{
+			name: "multiple tool use blocks",
+			body: []byte(`{
+				"id": "msg-multi",
+				"type": "message",
+				"role": "assistant",
+				"content": [
+					{"type": "tool_use", "id": "tool-1", "name": "func1", "input": {"arg": "val1"}},
+					{"type": "tool_use", "id": "tool-2", "name": "func2", "input": {"arg": "val2"}}
+				],
+				"stop_reason": "tool_use",
+				"model": "test-model",
+				"usage": {"input_tokens": 10, "output_tokens": 20}
+			}`),
+			wantErr: false,
+			check: func(t *testing.T, resp *LLMResponse) {
+				if len(resp.ToolCalls) != 2 {
+					t.Errorf("ToolCalls length = %d, want 2", len(resp.ToolCalls))
+				}
+			},
+		},
+		{
+			name:    "malformed JSON response",
+			body:    []byte(`{invalid json`),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseResponseBody(tt.body)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseResponseBody() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.check != nil && err == nil {
+				tt.check(t, got)
+			}
+		})
 	}
 }
 

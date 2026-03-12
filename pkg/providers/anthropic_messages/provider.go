@@ -119,9 +119,24 @@ func (p *Provider) Chat(
 		return nil, fmt.Errorf("reading response body: %w", err)
 	}
 
-	// Check for HTTP errors
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
+	// Check for HTTP errors with detailed messages
+	switch resp.StatusCode {
+	case http.StatusUnauthorized:
+		return nil, fmt.Errorf("authentication failed (401): check your API key")
+	case http.StatusTooManyRequests:
+		return nil, fmt.Errorf("rate limited (429): %s", string(body))
+	case http.StatusBadRequest:
+		return nil, fmt.Errorf("bad request (400): %s", string(body))
+	case http.StatusNotFound:
+		return nil, fmt.Errorf("endpoint not found (404): %s", string(body))
+	case http.StatusInternalServerError:
+		return nil, fmt.Errorf("internal server error (500): %s", string(body))
+	case http.StatusServiceUnavailable:
+		return nil, fmt.Errorf("service unavailable (503): %s", string(body))
+	default:
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
+		}
 	}
 
 	// Parse response
@@ -274,7 +289,7 @@ func parseResponseBody(body []byte) (*LLMResponse, error) {
 
 	// Extract content and tool calls
 	var content strings.Builder
-	var toolCalls []ToolCall
+	toolCalls := make([]ToolCall, 0) // Initialize as empty slice (not nil) for consistent JSON serialization
 
 	for _, block := range resp.Content {
 		switch block.Type {

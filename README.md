@@ -1111,9 +1111,11 @@ For direct Anthropic API access or custom endpoints that only support Anthropic'
 ```
 
 > Use `anthropic-messages` protocol when:
-> - Connecting directly to Anthropic's API (fixes 404 errors with `/v1/messages` endpoint)
-> - Using custom endpoints that only support Anthropic's native format
-> - Avoiding OpenAI-compatible wrapper layers
+> - Using third-party proxies that only support Anthropic's native `/v1/messages` endpoint (not OpenAI-compatible `/v1/chat/completions`)
+> - Connecting to services like MiniMax, Synthetic that require Anthropic's native message format
+> - The existing `anthropic` protocol returns 404 errors (indicating the endpoint doesn't support OpenAI-compatible format)
+>
+> **Note:** The `anthropic` protocol uses OpenAI-compatible format (`/v1/chat/completions`), while `anthropic-messages` uses Anthropic's native format (`/v1/messages`). Choose based on your endpoint's supported format.
 
 **Ollama (local)**
 
